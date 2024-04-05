@@ -4,7 +4,11 @@ import fr.uga.l3miage.spring.tp3.components.ExamComponent;
 import fr.uga.l3miage.spring.tp3.components.SessionComponent;
 import fr.uga.l3miage.spring.tp3.enums.SessionStatus;
 import fr.uga.l3miage.spring.tp3.exceptions.rest.CreationSessionRestException;
+import fr.uga.l3miage.spring.tp3.exceptions.rest.ModificationSessionRestException;
+import fr.uga.l3miage.spring.tp3.exceptions.rest.SessionNotFoundRestException;
 import fr.uga.l3miage.spring.tp3.exceptions.technical.ExamNotFoundException;
+import fr.uga.l3miage.spring.tp3.exceptions.technical.SessionNotFoundException;
+import fr.uga.l3miage.spring.tp3.exceptions.technical.SessionWrongStatusException;
 import fr.uga.l3miage.spring.tp3.mappers.SessionMapper;
 import fr.uga.l3miage.spring.tp3.models.EcosSessionEntity;
 import fr.uga.l3miage.spring.tp3.models.EcosSessionProgrammationEntity;
@@ -48,4 +52,21 @@ public class SessionService {
             throw new CreationSessionRestException(e.getMessage());
         }
     }
+
+    public SessionResponse modifyStateSession(Long sessionId){
+        try {
+            EcosSessionEntity ecosSessionEntity = sessionComponent.getById(sessionId);
+            if(ecosSessionEntity.getStatus() == SessionStatus.EVAL_STARTED){
+                ecosSessionEntity.setStatus(SessionStatus.EVAL_ENDED);
+            } else {
+                throw new SessionWrongStatusException("La session [%s] a le mauvais status",sessionId);
+            }
+            return sessionMapper.toResponse(ecosSessionEntity);
+        }catch ( SessionWrongStatusException | SessionNotFoundException e){
+            throw new ModificationSessionRestException(e.getMessage(),sessionId);
+        }
+
+
+    }
+
 }

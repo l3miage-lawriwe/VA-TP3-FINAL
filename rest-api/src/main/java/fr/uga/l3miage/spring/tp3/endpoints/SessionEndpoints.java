@@ -24,5 +24,12 @@ public interface SessionEndpoints {
     SessionResponse createSession(@RequestBody SessionCreationRequest request);
 
 
+    @Operation(description = "Changer l'état d'une session")
+    @ApiResponse(responseCode = "200",description = "OK, session modifiée")
+    @ApiResponse(responseCode = "409" ,description = "La session n'a pas être modifier", content = @Content(schema = @Schema(implementation = String.class),mediaType = MediaType.APPLICATION_JSON_VALUE))
+    @ResponseStatus(HttpStatus.OK)
+    @PostMapping("/modify")
+    SessionResponse modifyStateSession(@RequestBody Long sessionId);
+
 
 }

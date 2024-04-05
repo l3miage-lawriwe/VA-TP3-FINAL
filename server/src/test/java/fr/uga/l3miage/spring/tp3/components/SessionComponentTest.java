@@ -1,6 +1,7 @@
 package fr.uga.l3miage.spring.tp3.components;
 
 import fr.uga.l3miage.spring.tp3.exceptions.technical.CandidateNotFoundException;
+import fr.uga.l3miage.spring.tp3.exceptions.technical.SessionNotFoundException;
 import fr.uga.l3miage.spring.tp3.models.*;
 import fr.uga.l3miage.spring.tp3.repositories.CandidateRepository;
 import fr.uga.l3miage.spring.tp3.repositories.EcosSessionRepository;
@@ -75,9 +76,32 @@ public class SessionComponentTest {
 
         // la fonction n'a pas de throw
 
+    }  */
+
+
+    @Test
+    void testGetSessionByIdFound(){
+        //given
+        EcosSessionEntity sessionEntity = EcosSessionEntity
+                .builder()
+                .build();
+        when(sessionRepository.findById(anyLong())).thenReturn(Optional.of(sessionEntity));
+
+        // when - then
+        assertDoesNotThrow(()->sessionComponent.getById((long)1));
     }
 
 
-     */
+    @Test
+    void testGetSessionByIdNotFound(){
+        //given
+        EcosSessionEntity sessionEntity = EcosSessionEntity
+                .builder()
+                .build();
+        when(sessionRepository.findById(anyLong())).thenReturn(Optional.empty());
+
+        // when - then
+        assertThrows(SessionNotFoundException.class,()->sessionComponent.getById((long)1));
+    }
 
 }

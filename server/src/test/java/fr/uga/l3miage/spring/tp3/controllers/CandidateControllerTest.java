@@ -3,6 +3,7 @@ package fr.uga.l3miage.spring.tp3.controllers;
 
 
 
+import fr.uga.l3miage.spring.tp3.exceptions.CandidatNotFoundResponse;
 import fr.uga.l3miage.spring.tp3.repositories.CandidateRepository;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
@@ -32,6 +33,8 @@ import static org.mockito.Mockito.verify;
 @AutoConfigureWebTestClient
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, properties = "spring.jpa.database-platform=org.hibernate.dialect.H2Dialect")
 public class CandidateControllerTest {
+    @Autowired
+    private TestRestTemplate testRestTemplate;
 
     @Autowired
     private CandidateRepository candidateRepository;
@@ -47,6 +50,7 @@ public class CandidateControllerTest {
 
 
     //tentative de test
+
     /*
     @Test
     void notePasCalculeeErreur(){
@@ -54,7 +58,6 @@ public class CandidateControllerTest {
         final HttpHeaders headers = new HttpHeaders();
 
         //when
-        ResponseEntity<>
 
     }*/
 }
