@@ -7,8 +7,13 @@ import fr.uga.l3miage.spring.tp3.components.SessionComponent;
 import fr.uga.l3miage.spring.tp3.exceptions.CandidatNotFoundResponse;
 import fr.uga.l3miage.spring.tp3.exceptions.rest.CandidateNotFoundRestException;
 import fr.uga.l3miage.spring.tp3.exceptions.rest.ModificationSessionRestException;
+import fr.uga.l3miage.spring.tp3.models.CandidateEntity;
+import fr.uga.l3miage.spring.tp3.models.CandidateEvaluationGridEntity;
 import fr.uga.l3miage.spring.tp3.models.EcosSessionEntity;
+import fr.uga.l3miage.spring.tp3.models.ExamEntity;
+import fr.uga.l3miage.spring.tp3.repositories.CandidateEvaluationGridRepository;
 import fr.uga.l3miage.spring.tp3.repositories.CandidateRepository;
+import fr.uga.l3miage.spring.tp3.repositories.ExamRepository;
 import fr.uga.l3miage.spring.tp3.services.CandidateService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
@@ -45,7 +50,14 @@ public class CandidateControllerTest {
     @Autowired
     private CandidateRepository candidateRepository;
 
-    @MockBean
+    @Autowired
+    private ExamRepository examRepository;
+
+    @Autowired
+    private CandidateEvaluationGridRepository candidateEvaluationGridRepository;
+
+    @SpyBean
+    //@MockBean
     private CandidateService candidateService;
 
 
@@ -60,14 +72,73 @@ public class CandidateControllerTest {
 
 
     //tentative de test
-    // j'ai l'erreur Not enough variable values available to expand 'candidateId'
-    // il y a probablement une erreur dans la formation de la query mais j'arrive pas a fix
+    // je N'arrive pas a faire fonctionner les insertions dans les repositories
 
     @Test
     void testaverage(){
         //given
         final HttpHeaders headers = new HttpHeaders();
 
+        ExamEntity exam1 = ExamEntity
+                .builder()
+                .id((long)5)
+                .weight(1)
+                .build();
+
+
+        ExamEntity exam2 = ExamEntity
+                .builder()
+                .id((long)4)
+                .weight(1)
+                .build();
+
+        //given
+        CandidateEvaluationGridEntity grid1 = CandidateEvaluationGridEntity
+                .builder()
+                .grade(5)
+                .sheetNumber((long)3)
+                .examEntity(exam1)
+                .build();
+
+        CandidateEvaluationGridEntity grid2 = CandidateEvaluationGridEntity
+                .builder()
+                .sheetNumber((long)2)
+                .grade(15)
+                .examEntity(exam2)
+                .build();
+
+
+
+        CandidateEntity candidateEntity = CandidateEntity
+                .builder()
+                .id((long)1)
+                .firstname("test_man_1_firstname")
+                .email("test@gmail")
+                .candidateEvaluationGridEntities(Set.of(grid1,grid2))
+                .build();
+
+        examRepository.save(exam1);
+        examRepository.save(exam2);
+        candidateEvaluationGridRepository.save(grid1);
+        candidateEvaluationGridRepository.save(grid2);
+        candidateRepository.save(candidateEntity);
+
+
+        //when
+        Double doubleDonne = testRestTemplate.exchange("/api/candidates/{candidateId}/average", HttpMethod.GET, new HttpEntity<>(null, headers) ,Double.class,(long)1).getBody();
+
+        //then
+        assertThat(doubleDonne).isEqualTo((double)10);
+
+    }
+
+
+    //Version du test avec un mockbean
+    // remplacer le spybean de candidateService par un mockBean pour utiliser
+    @Test
+    void testaverageMockBean(){
+        //given
+        final HttpHeaders headers = new HttpHeaders();
 
         Long testId = (long) 1;
 
@@ -76,29 +147,25 @@ public class CandidateControllerTest {
 
 
 
-
         //when
-        // l'erreur est très probablement sur cette ligne
-        Double doubleDonne = testRestTemplate.exchange("/api/candidates/{candidateId}/average", HttpMethod.GET, new HttpEntity<>(testId, headers) ,Double.class).getBody();
+        ResponseEntity<Double> doubleDonne = testRestTemplate.exchange("/api/candidates/{candidateId}/average", HttpMethod.GET, new HttpEntity<>(null, headers) ,Double.class,testId);
 
         //then
-        assertThat(doubleDonne).isEqualTo(testResult);
+        assertThat(doubleDonne.getBody()).isEqualTo(testResult);
 
     }
 
-    // meme probleme sur ce test
-    // de plus ce test est incorrect : je devrait utiliser le spybean, mais j'ai déja fait un mockbean de CandidateService et j'ai oublié de demander a prof si on peut faire un spybean et un mockbean du même service
+
+
     @Test
     void testaverageError() {
         //given
         final HttpHeaders headers = new HttpHeaders();
 
-        Long testId = (long) 1;
+        //when
+        ResponseEntity<CandidatNotFoundResponse> response = testRestTemplate.exchange("/api/candidates/{candidateId}/average", HttpMethod.GET, new HttpEntity<>(null, headers) ,CandidatNotFoundResponse.class,(long)1);
 
-        when(candidateService.getCandidateAverage(any(Long.class))).thenThrow(new CandidateNotFoundRestException("candidat introvable", (long) 1));
-
-        //when-then
-        assertThrows(CandidateNotFoundRestException.class, () -> testRestTemplate.exchange("/api/candidates/{candidateId}/average", HttpMethod.GET, new HttpEntity<>(testId, headers), Double.class).getBody());
-
+        //then
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
     }
 }
