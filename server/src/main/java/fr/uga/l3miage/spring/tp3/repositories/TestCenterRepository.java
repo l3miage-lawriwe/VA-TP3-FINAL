@@ -9,4 +9,5 @@ import org.springframework.stereotype.Repository;
 public interface TestCenterRepository  extends JpaRepository<TestCenterEntity,Long> {
 
     TestCenterEntity findByCodeEquals(TestCenterCode code);
+
 }
